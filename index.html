@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Vagrant-elk-cluster by bhaskarvk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Vagrant-elk-cluster</h1>
+      <h2 class="project-tagline">Create a ELK Cluster under Vagrant</h2>
+      <a href="https://github.com/bhaskarvk/vagrant-elk-cluster" class="btn">View on GitHub</a>
+      <a href="https://github.com/bhaskarvk/vagrant-elk-cluster/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/bhaskarvk/vagrant-elk-cluster/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="vagrant-elk-elasticsearch--logstash--kibana-cluster" class="anchor" href="#vagrant-elk-elasticsearch--logstash--kibana-cluster" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Vagrant ELK (Elasticsearch + Logstash + Kibana) Cluster</h1>
+
+<p><strong>For ES 2.0 and above</strong>. For ES 1.x see branch es1.x.</p>
+
+<p>Create an ELK Stack with a single bash command in Vmware, Parallels, or VirtualBox :</p>
+
+<div class="highlight highlight-source-shell"><pre>vagrant up --no-parallel --provider <span class="pl-k">&lt;</span>virtualbox<span class="pl-k">|</span>parallels<span class="pl-k">|</span>vmware_fusion<span class="pl-k">|</span>vmware_workstation<span class="pl-k">&gt;</span></pre></div>
+
+<p></p><div><strong>Read Pre Requisites below.</strong></div><strong>I would also highly recommend that you read this file in its entirety at least once.</strong><br><br>
+
+<hr>
+
+<p><strong>Software versions information</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Software</th>
+<th>Version</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CentOS</td>
+<td>7.1</td>
+<td>Guest OS <br> VMWare and Virtual box :<a href="https://atlas.hashicorp.com/chef/boxes/centos-7.1">chef/centos-7.1</a> <br> &amp; parallels : <a href="https://atlas.hashicorp.com/parallels/boxes/centos-7.1">parallels/centos-7.1</a>
+</td>
+</tr>
+<tr>
+<td>Java (oracle)</td>
+<td>1.8.0_65</td>
+<td><a href="http://www.oracle.com/technetwork/java/javase/downloads/">Download JDK</a></td>
+</tr>
+<tr>
+<td>ElasticSearch</td>
+<td>2.1.0</td>
+<td>
+<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html">Reference Guide</a> / <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/index.html">Definitive Guide</a>
+</td>
+</tr>
+<tr>
+<td>Kibana</td>
+<td>4.3.0</td>
+<td><a href="https://www.elastic.co/guide/en/kibana/current/index.html">Reference Guide</a></td>
+</tr>
+<tr>
+<td>LogStash</td>
+<td>2.1.0</td>
+<td><a href="https://www.elastic.co/guide/en/logstash/current/index.html">Reference Guide</a></td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Cluster Details</strong></p>
+
+<p><em>Default Cluster Name</em> : <strong>es-dev-cluster</strong></p>
+
+<p><em>Default Network Setup</em>: <strong>Private Network 10.1.1.0/24</strong></p>
+
+<p><em>Default CPU Cores Per Node</em> : <strong>1</strong></p>
+
+<p><em>Default RAM Per Node</em> : <strong>1024MB</strong></p>
+
+<p><em>ES Endpoint URL</em> : <a href="http://localhost:9200/"><strong>http://localhost:9200/</strong></a> (<em>from Host Machine</em>)</p>
+
+<p><em>Kibana Endpoint URL</em> : <a href="http://localhost:5601/"><strong>http://localhost:5601/</strong></a> (<em>from Host Machine</em>)</p>
+
+<p><em>Logstash Syslog Ports</em> : <strong>localhost:5514 (Both TCP and UDP)</strong> (<em>from Host Machine</em>)</p>
+
+<p><em>Cluster Nodes :</em></p>
+
+<table>
+<thead>
+<tr>
+<th>VM Name</th>
+<th>Node Name</th>
+<th>Default IP</th>
+<th>VM Port &lt;=&gt; Host Port</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>vm1</td>
+<td>thor</td>
+<td>10.1.1.11</td>
+<td>9200&lt;=&gt;9201<br>9300&lt;=&gt;9301</td>
+<td>1<sup>st</sup> Elasticsearch Node</td>
+</tr>
+<tr>
+<td>vm2</td>
+<td>zeus</td>
+<td>10.1.1.12</td>
+<td>9200&lt;=&gt;9202<br>9300&lt;=&gt;9302</td>
+<td>2<sup>nd</sup> Elasticsearch Node</td>
+</tr>
+<tr>
+<td>vm3</td>
+<td>isis</td>
+<td>10.1.1.13</td>
+<td>9200&lt;=&gt;9203<br>9300&lt;=&gt;9303</td>
+<td>3<sup>rd</sup> Elasticsearch Node</td>
+</tr>
+<tr>
+<td>vm4</td>
+<td>baal</td>
+<td>10.1.1.14</td>
+<td>9200&lt;=&gt;9204<br>9300&lt;=&gt;9304</td>
+<td>4<sup>th</sup> Elasticsearch Node<br>(<em>Not started by default</em>)</td>
+</tr>
+<tr>
+<td>vm5</td>
+<td>shifu</td>
+<td>10.1.1.15</td>
+<td>9200&lt;=&gt;9205<br>9300&lt;=&gt;9305</td>
+<td>5<sup>th</sup> Elasticsearch Node<br>(<em>Not started by default</em>)</td>
+</tr>
+<tr>
+<td>vm250</td>
+<td>kibana</td>
+<td>10.1.1.250</td>
+<td><strong>9200&lt;=&gt;9200<br>9300&lt;=&gt;9300<br>5601&lt;=&gt;5601</strong></td>
+<td>Kibana + ES Client Node</td>
+</tr>
+<tr>
+<td>vm251</td>
+<td>logstash</td>
+<td>10.1.1.251</td>
+<td><strong>5514&lt;=&gt;5514<br>(TCP &amp; UDP)</strong></td>
+<td>Logstash Node</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>WARNING</strong>:  You'll need enough RAM to run VMs in your cluster. Each new VM launched within your cluster will have 1024M of RAM allocated.</p>
+
+<p><strong>Elasticsearch Plugins</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>Version</th>
+<th>URL To Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/elasticsearch/elasticsearch-mapper-attachments">elasticsearch-mapper-attachments</a></td>
+<td>3.0.2</td>
+<td>N.A.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/mobz/elasticsearch-head">elasticsearch-head</a></td>
+<td>latest</td>
+<td>
+<a href="http://localhost:9200/_plugin/head/">http://localhost:9200/_plugin/head/</a><br><strong>NOT WORKING IN ES 2.0</strong>
+</td>
+</tr>
+<tr>
+<td><a href="https://github.com/lmenezes/elasticsearch-kopf">elasticsearch-kopf</a></td>
+<td>2.0.0</td>
+<td><a href="http://localhost:9200/_plugin/kopf">http://localhost:9200/_plugin/kopf</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/karmi/elasticsearch-paramedic">elasticsearch-paramedic</a></td>
+<td>latest</td>
+<td>
+<a href="http://localhost:9200/_plugin/paramedic/">http://localhost:9200/_plugin/paramedic/</a><br><strong>NOT WORKING IN ES 2.0</strong>
+</td>
+</tr>
+<tr>
+<td><a href="https://github.com/royrusso/elasticsearch-HQ">elasticsearch-HQ</a></td>
+<td>latest</td>
+<td>
+<a href="http://localhost:9200/_plugin/HQ/">http://localhost:9200/_plugin/HQ/</a><br><strong>NOT WORKING IN ES 2.0</strong>
+</td>
+</tr>
+<tr>
+<td><a href="https://github.com/lukas-vlcek/bigdesk">bigdesk</a></td>
+<td>latest</td>
+<td>
+<a href="http://localhost:9200/_plugin/bigdesk">http://localhost:9200/_plugin/bigdesk</a><br><strong>NOT WORKING IN ES 2.0</strong>
+</td>
+</tr>
+<tr>
+<td><a href="https://www.elastic.co/guide/en/sense/current/index.html">Sense</a></td>
+<td>2.0.0</td>
+<td><a href="http://localhost:5601/app/sense">http://localhost:5601/app/sense</a></td>
+</tr>
+</tbody>
+</table>
+
+<p><br></p>
+
+<hr>
+
+<h2>
+<a id="1-pre-requisite--set-up" class="anchor" href="#1-pre-requisite--set-up" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1. Pre Requisite &amp; Set up</h2>
+
+<p><strong>Must have on your host machine</strong></p>
+
+<ul>
+<li>VirtualBox (last version) OR VMWare desktop|fusion OR parallels</li>
+<li>Vagrant (&gt;=1.7)</li>
+<li>Respective vagrant plugins for vmware or parallels</li>
+<li>cUrl (or another REST client to talk to ES)</li>
+</ul>
+
+<p><strong>Clone this repository</strong></p>
+
+<p><code>git clone https://github.com/bhaskarvk/vagrant-elk-cluster.git</code></p>
+
+<p><strong>Download Installation Files</strong></p>
+
+<p>This needs to be done just once.</p>
+
+<ul>
+<li>  Download JDK 8u65 64bit RPM from <a href="http://www.oracle.com/technetwork/java/javase/downloads/">Oracle</a> </li>
+<li>  Download elasticsearch-2.1.0.tar.gz from <a href="https://www.elastic.co/downloads/elasticsearch">elastic</a>
+</li>
+<li>  Download kibana-4.3.0-linux-x64.tar.gz from <a href="https://www.elastic.co/downloads/kibana">elastic</a>
+</li>
+<li>  Download logstash-2.1.0.tar.gz from <a href="https://www.elastic.co/downloads/logstash">elastic</a>
+</li>
+<li>  Place all the above files at the root of this repo.</li>
+</ul>
+
+<p>If you need to upgrade any of the above, download respective version and change the version number in <code>lib/upgrade-es.sh</code> OR  <code>lib/upgrade-kibana.sh</code> Or  <code>lib/upgrade-logstash.sh</code> accordingly and re-run provisioning.</p>
+
+<h2>
+<a id="2-how-to-run-a-new-elk-stack-cluster" class="anchor" href="#2-how-to-run-a-new-elk-stack-cluster" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. How to run a new ELK Stack cluster</h2>
+
+<p><strong>Run the cluster</strong></p>
+
+<p>Simply go in the cloned directory (vagrant-elk-cluster by default).
+Execute this command :</p>
+
+<div class="highlight highlight-source-shell"><pre>vagrant up --no-parallel --provider <span class="pl-k">&lt;</span>virtualbox<span class="pl-k">|</span>parallels<span class="pl-k">|</span>vmware_fusion<span class="pl-k">|</span>vmware_workstation<span class="pl-k">&gt;</span></pre></div>
+
+<p>I recommend starting in <code>no-parallel</code> mode as it is the safest, but you can also try with removing this argument.</p>
+
+<p>By default 3 ElasticSearch Nodes are started: vm1, vm2, and vm3. One kibana (vm250) and one logstash (vm251) node are also started.
+You can start a maximum of 5 Elasticsearch nodes. If you want you can increase this limit by changing the code but it is pointless to have a bigger cluster for dev|qa purposes.</p>
+
+<p>You can change the cluster size with the <code>CLUSTER_COUNT</code> variable (min 1 and max 5):</p>
+
+<div class="highlight highlight-source-shell"><pre>CLUSTER_COUNT=5 vagrant up </pre></div>
+
+<p>You can change the cluster name with the <code>CLUSTER_NAME</code> variable:</p>
+
+<div class="highlight highlight-source-shell"><pre>CLUSTER_NAME=<span class="pl-s"><span class="pl-pds">'</span>es-qa-cluster<span class="pl-pds">'</span></span> vagrant up</pre></div>
+
+<p>You can change the cluster RAM used for each node with the <code>CLUSTER_RAM</code> variable:</p>
+
+<div class="highlight highlight-source-shell"><pre>CLUSTER_RAM=512 vagrant up</pre></div>
+
+<p>You can change the cluster CPU used for each node with the <code>CLUSTER_CPU</code> variable:</p>
+
+<div class="highlight highlight-source-shell"><pre>CLUSTER_CPU=2 vagrant up</pre></div>
+
+<p>You can change the cluster network IP address with the <code>CLUSTER_IP_PATTERN</code> variable:</p>
+
+<div class="highlight highlight-source-shell"><pre>CLUSTER_IP_PATTERN=<span class="pl-s"><span class="pl-pds">'</span>172.16.15.%d<span class="pl-pds">'</span></span> vagrant up</pre></div>
+
+<p><strong>NOTE</strong> : Providing the <code>CLUSTER_NAME</code>, <code>CLUSTER_COUNT</code>, <code>CLUSTER_RAM</code>, <code>CLUSTER_CPU</code>, <code>CLUSTER_IP_PATTERN</code> variables is only required when you first start the cluster.
+Vagrant will save/cache these values under the <code>.vagrant</code> directory, so you can run other commands without repeating yourself.</p>
+
+<p>Of course you can use all these variables at the same time :</p>
+
+<div class="highlight highlight-source-shell"><pre>$ CLUSTER_NAME=<span class="pl-s"><span class="pl-pds">'</span>es-qa-cluster<span class="pl-pds">'</span></span> CLUSTER_IP_PATTERN=<span class="pl-s"><span class="pl-pds">'</span>172.16.25.%d<span class="pl-pds">'</span></span> CLUSTER_COUNT=5 \
+CLUSTER_RAM=512 CLUSTER_CPU=2 vagrant up</pre></div>
+
+<p><strong>Sample output</strong></p>
+
+<pre><code>$ vagrant status
+----------------------------------------------------------
+          Your ES cluster configurations
+----------------------------------------------------------
+Cluster Name: dev-es-cluster
+Cluster size: 3
+Cluster network IP: 10.1.1.0
+Cluster RAM (for each node): 1024
+Cluster CPU (for each node): 1
+----------------------------------------------------------
+----------------------------------------------------------
+Current machine states:
+
+vm1                       stopped (parallels)
+vm2                       stopped (parallels)
+vm3                       stopped (parallels)
+kibana                    stopped (parallels)
+logstash                  stopped (parallels)
+
+This environment represents multiple VMs. The VMs are all listed
+above with their current state. For more information about a specific
+VM, run `vagrant status NAME`....
+</code></pre>
+
+<p>The names of the Elasticsearch VMs will follow the following pattern: <code>vm[0-9]+</code>.
+The trailing number represents the index of the VM, starting at 1. Kibana and Logstash instances are simply named kibana and logstash.</p>
+
+<p>ElasticSearch, Kibana, &amp; Logstash instances are started during provisioning of respective VMs.
+The command is launched into a new screen as root user inside the vagrant.</p>
+
+<p><strong>Stop the cluster</strong></p>
+
+<div class="highlight highlight-source-shell"><pre>vagrant halt</pre></div>
+
+<p>This will stop the whole cluster. If you want to only stop one VM, you can use:</p>
+
+<div class="highlight highlight-source-shell"><pre>vagrant halt vm2</pre></div>
+
+<p>This will stop the <code>vm2</code> instance.</p>
+
+<p><strong>Destroy the cluster</strong></p>
+
+<div class="highlight highlight-source-shell"><pre>vagrant destroy
+rm -rf .vagrant conf/<span class="pl-k">*</span>.yml conf/<span class="pl-k">*</span>.conf logs/<span class="pl-k">*</span> data/<span class="pl-k">*</span> </pre></div>
+
+<p>This will stop the whole cluster. If you want to only stop one VM, you can use:</p>
+
+<div class="highlight highlight-source-shell"><pre>vagrant destroy vm2</pre></div>
+
+<p><g-emoji alias="warning" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/26a0.png">⚠️</g-emoji> If you destroy a VM, I suggest you to destroy all the cluster to be sure to have the same ES version in all of your nodes.</p>
+
+<p><strong>Managing ElasticSearch instances</strong></p>
+
+<p>Each VM has its own ElasticSearch instance running in a <code>screen</code> session named <code>elastic</code>.
+Once connected to the VM, you can manage this instance with the following commands:</p>
+
+<ul>
+<li>
+<code>sudo node-start</code>: starts the ES instance</li>
+<li>
+<code>sudo node-stop</code>: stops the ES instance</li>
+<li>
+<code>sudo node-restart</code>: restarts the ES instance</li>
+<li>
+<code>sudo node-status</code>: displays ES instance's status</li>
+<li>
+<code>sudo node-attach</code>: bring you to the screen session hosting the ES instance. Use <code>^Ad</code> to detach.</li>
+</ul>
+
+<p>You should be brought to the screen session hosting ElasticSearch and see its log.</p>
+
+<p>For Kibana use <code>sudo kibana-&lt;start|stop|restart|status|attach&gt;</code>, and similarly for Logstash use <code>sudo logstash-&lt;start|stop|restart|status|attach&gt;</code></p>
+
+<p><strong>Default Directories</strong></p>
+
+<p>By default the <code>data</code>, <code>logs</code> and <code>config</code> directories live outside of the VMs on the host, this way you can destroy and rebuild VMs as much as you like without losing your data. You can also upgrade Elasticsearch and not lose data.</p>
+
+<h2>
+<a id="3-access-the-cluster" class="anchor" href="#3-access-the-cluster" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3. Access the Cluster</h2>
+
+<p>The 9200 and 9300 ports of the host machine have been setup to forward to respective ports of ES Client Node running on Kibana.
+To access ES Rest API from Host machine you can use <a href="http://localhost:9200/"><strong>http://localhost:9200/</strong></a> which will route the API Access via the Client Node running on the Kibana Node.</p>
+
+<p>TO access ES Rest Endpoint on a data node, use 9200 + &lt;node number&gt; on the host machine. so for vm1 it would be  9201 so <a href="http://localhost:9201/">http://localhost:9201/</a> and 9202 for vm2, and so forth. But you will hardly need to access these endpoints from host machine.</p>
+
+<p>To access Kibana from host machine use <a href="http://localhost:5601/"><strong>http://localhost:5601/</strong></a>. Logstash node has been setup to receive syslog messages on port 5514 (TCP &amp; UDP) and the host machine will forward anything on its port 5514 (TCP &amp; UDP) to these ports.</p>
+
+<h2>
+<a id="4-configure-your-cluster" class="anchor" href="#4-configure-your-cluster" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>4. Configure your cluster</h2>
+
+<p>If you need or want to change the default working configuration of your cluster,
+you can do it adding/editing elasticsearch-.yml files in <code>conf</code> directory.
+Each node configuration is shared with VM thanks to this "conf" directory.</p>
+
+<p>By default, this configuration files are <strong>auto-generated</strong> by Vagrant when running the cluster for the first time.
+In this case, default values listed at the top of this page are used.</p>
+
+<p>Similarly for logstash you need to change conf/logstash-.conf file again in <code>conf</code> directory.</p>
+
+<h2>
+<a id="5-working-with-your-cluster" class="anchor" href="#5-working-with-your-cluster" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>5. Working with your cluster</h2>
+
+<p>Here are a few sample calls to get you started.</p>
+
+<p>Send some sample syslog messages to Logstash to be indexed in Elasticsearch.</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"># From the host machine</span>
+<span class="pl-c"># I'm assuming the host is some sort of UNIX box</span>
+<span class="pl-c"># If windows, then you are on your own :)</span>
+<span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>&lt;133&gt;<span class="pl-smi">$0</span>[<span class="pl-smi">$$</span>]: Test syslog message from Netcat<span class="pl-pds">"</span></span> <span class="pl-k">|</span> nc -4 localhost 5514
+<span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>&lt;133&gt;<span class="pl-smi">$0</span>[<span class="pl-smi">$$</span>]: Second Test syslog message from Netcat<span class="pl-pds">"</span></span> <span class="pl-k">|</span> nc -4 localhost 5514</pre></div>
+
+<p>Next go to Kibana Dashboard at <a href="http://localhost:5601/">http://localhost:5601/</a>. Kibana will auto discover the logstash index and ask you some basic question, just select the default, and then go to the discover tab. You should see the two sample messages.</p>
+
+<hr>
+
+<p><strong>TODO</strong></p>
+
+<p>See issues.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/bhaskarvk/vagrant-elk-cluster">Vagrant-elk-cluster</a> is maintained by <a href="https://github.com/bhaskarvk">bhaskarvk</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
